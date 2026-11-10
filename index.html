@@ -722,6 +722,30 @@ body{transition:background .9s}
 .sun-arc{width:100%;max-height:90px}.sun-t{display:flex;justify-content:space-between;font-size:12.5px;font-weight:800}
 /* moon */
 .mn{display:flex;align-items:center;gap:12px}.mn b{font-size:15px}
+.g13::before{background:radial-gradient(70% 60% at 0% 100%,rgba(255,190,120,.3),transparent 70%),radial-gradient(50% 50% at 100% 0%,rgba(var(--hi),.25),transparent 70%)}
+.g14::before{background:radial-gradient(60% 60% at 85% 10%,rgba(200,190,255,.38),transparent 70%),radial-gradient(70% 60% at 0% 110%,rgba(var(--deep),.5),transparent 70%)}
+/* wind hub */
+.wd-hub{fill:rgba(6,10,28,.55);stroke:rgba(var(--hi),.3);stroke-width:1}
+.wd-l{fill:rgba(var(--hot),.95);paint-order:stroke;stroke:rgba(6,10,28,.75);stroke-width:2.5px}
+.wd-c b{font-size:22px}.wd-c span{font-size:9.5px;margin-top:1px}
+/* this day last year */
+.ly-head b{display:block;font-size:clamp(18px,2.1vw,24px);font-weight:800;line-height:1.1}.ly-head span{font-size:12px;font-weight:700;opacity:.75}
+.ly-rows{display:flex;flex-direction:column;gap:4px}
+.ly-r{display:grid;grid-template-columns:42px 24px 30px 1fr 30px;align-items:center;gap:6px;font-size:12.5px;font-weight:800}
+.ly-y{opacity:.8}.ly-lo{opacity:.7;text-align:right}.ly-hi{text-align:right}
+.ly-wait{display:flex;flex-direction:column;align-items:center;gap:10px}
+.ly-spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.18);border-top-color:rgb(var(--hot));animation:spin 1s linear infinite}
+/* sleep tonight */
+.sl-top{display:flex;align-items:center;gap:11px}
+.sl-ring{--p:0;--c:#fff;width:46px;height:46px;flex:none;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--p) * 1%),rgba(255,255,255,.13) 0);position:relative}
+.sl-ring::before{content:"";position:absolute;inset:4px;border-radius:50%;background:rgba(8,12,32,.82)}
+.sl-ring b{position:relative;font-size:15px}
+.sl-cap{min-width:0}.sl-cap b{display:block;font-size:16px;line-height:1.15}.sl-cap span{display:block;font-size:11.5px;font-weight:700;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-spark{width:100%;height:30px;flex:none}
+.sl-rows{display:flex;flex-direction:column;gap:5px}
+.sl-rows>div{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;font-weight:700}
+.sl-e,.sl-k{font-style:normal}.sl-rows span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.85}.sl-rows b{flex:none;font-weight:800}
+@media (max-width:560px){.sl-spark,.sl-e,.sl-k{display:none}.ly-r{grid-template-columns:34px 20px 26px 1fr 26px;gap:4px;font-size:11.5px}.ly-r .wi{width:20px;height:20px}.sl-rows>div{font-size:11.5px}.sl-ring{width:40px;height:40px}.sl-cap b{font-size:14px}.ly-head span{font-size:11px}}
 /* key-value grid */
 .bt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .bt>div{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);min-width:0}
@@ -21227,7 +21251,7 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch
 const keyQ = () => CONFIG.apiKey ? '&apikey=' + encodeURIComponent(CONFIG.apiKey) : '';
 
 /* ---------- state ---------- */
-const DEFAULT_TILES = ['hourly', 'daily', 'rainnow', 'shouldi', 'wind', 'air', 'sun', 'moon', 'beauty', 'feels', 'garden', 'pets'];
+const DEFAULT_TILES = ['hourly', 'daily', 'rainnow', 'shouldi', 'wind', 'air', 'sun', 'moon', 'beauty', 'feels', 'garden', 'pets', 'lastyear', 'sleep'];
 function freshState() {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
   const home = { 'Asia/Kolkata': ['New Delhi', 'India', 'IN', 28.6139, 77.209], 'Asia/Calcutta': ['New Delhi', 'India', 'IN', 28.6139, 77.209], 'Europe/London': ['London', 'United Kingdom', 'GB', 51.5072, -0.1276], 'America/New_York': ['New York', 'United States', 'US', 40.7128, -74.006], 'Asia/Dubai': ['Dubai', 'UAE', 'AE', 25.2048, 55.2708], 'Asia/Tokyo': ['Tokyo', 'Japan', 'JP', 35.6762, 139.6503] }[tz] || ['London', 'United Kingdom', 'GB', 51.5072, -0.1276];
@@ -21247,6 +21271,8 @@ function freshState() {
   };
 }
 let S = (() => { try { const s = JSON.parse(lsGet('mw.state') || 'null'); if (s && s.v) return deepMerge(freshState(), s); } catch { } return freshState(); })();
+// tiles added after launch: append them to layouts saved before they existed
+DEFAULT_TILES.forEach(k => { if (Array.isArray(S.tiles) && !S.tiles.includes(k)) S.tiles.push(k); });
 function deepMerge(base, over) { for (const k in over) { if (over[k] && typeof over[k] === 'object' && !Array.isArray(over[k]) && base[k] && typeof base[k] === 'object' && !Array.isArray(base[k])) base[k] = deepMerge(base[k], over[k]); else base[k] = over[k]; } return base; }
 let saveT = null;
 function save() { clearTimeout(saveT); saveT = setTimeout(() => { const ok = lsSet('mw.state', JSON.stringify(S)); if (!ok) { /* storage full: drop caches and retry */ S.cache = {}; S.aq = {}; lsSet('mw.state', JSON.stringify(S)); } }, 200); }
@@ -21576,6 +21602,7 @@ const Ambient = {
    ===================================================================== */
 const SKIN = [[1, 'Very fair, always burns', 200], [2, 'Fair, burns easily', 250], [3, 'Medium, sometimes burns', 350], [4, 'Olive, rarely burns', 450], [5, 'Brown, very rarely burns', 600], [6, 'Dark brown or black', 1000]];
 S.opts = S.opts || { hours: 24, feels: false, days: 7, rainProb: true };
+S.opts.bed ??= 22; S.opts.wake ??= 7;
 const aqiCat = (v, std) => std === 'eu' ? (v <= 20 ? ['Good', '#48dca0'] : v <= 40 ? ['Fair', '#a5e05a'] : v <= 60 ? ['Moderate', '#ffd84d'] : v <= 80 ? ['Poor', '#ffb03b'] : v <= 100 ? ['Very poor', '#ff6b5c'] : ['Extremely poor', '#b03a8c'])
   : (v <= 50 ? ['Good', '#48dca0'] : v <= 100 ? ['Moderate', '#ffd84d'] : v <= 150 ? ['Unhealthy for sensitive groups', '#ffb03b'] : v <= 200 ? ['Unhealthy', '#ff6b5c'] : v <= 300 ? ['Very unhealthy', '#b03a8c'] : ['Hazardous', '#7e0023']);
 const beaufort = k => { const b = [[1, 'Calm'], [6, 'Light air'], [12, 'Light breeze'], [20, 'Gentle breeze'], [29, 'Moderate breeze'], [39, 'Fresh breeze'], [50, 'Strong breeze'], [62, 'Near gale'], [75, 'Gale'], [89, 'Strong gale'], [103, 'Storm'], [118, 'Violent storm'], [999, 'Hurricane force']]; return b.find(x => k < x[0])[1]; };
@@ -21584,6 +21611,50 @@ const burnMin = (uv, skin) => uv < .5 ? Infinity : Math.round(SKIN[skin - 1][2] 
 const pavement = h => h.temperature_2m + (h.is_day ? 30 * (1 - (h.cloud_cover || 0) / 100) * Math.min(1, (h.uv_index || 0) / 6 + .25) : 0);
 const pollenKeys = [['grass_pollen', 'Grass'], ['birch_pollen', 'Birch'], ['alder_pollen', 'Alder'], ['ragweed_pollen', 'Ragweed'], ['mugwort_pollen', 'Mugwort'], ['olive_pollen', 'Olive']];
 const pollenLvl = v => v == null ? null : v < 10 ? ['Low', '#48dca0'] : v < 50 ? ['Moderate', '#ffd84d'] : v < 200 ? ['High', '#ffb03b'] : ['Very high', '#ff6b5c'];
+
+
+/* ---------- "This day last year" ---------- */
+const LastYear = {
+  pend: {}, fail: {},
+  when(d) { let s = ''; try { s = new Intl.DateTimeFormat('en-CA', { timeZone: d.timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(Date.now()); } catch { }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) { const n = new Date(); s = `${n.getFullYear()}-${pad(n.getMonth() + 1)}-${pad(n.getDate())}`; }
+    let [y, m, dd] = s.split('-').map(Number); y -= 1; if (m === 2 && dd === 29) dd = 28;
+    return { year: y, ymd: `${y}-${pad(m)}-${pad(dd)}`, label: fmtDay(Date.UTC(y, m - 1, dd, 12), 'UTC', { day: 'numeric', month: 'short', year: 'numeric' }) }; },
+  get(d, l) { const w = this.when(d), k = l.id + w.ymd, r = S.mem[k];
+    if (r) return r.temperature_2m_max?.[0] != null ? { state: 'ok', r, ...w } : { state: 'none', ...w };
+    if (this.fail[k] && Date.now() - this.fail[k] < 5 * MIN) return { state: 'fail', ...w };
+    if (!this.pend[k]) { this.pend[k] = 1; Data.archive(l, w.ymd).catch(() => { this.fail[k] = Date.now(); }).finally(() => { delete this.pend[k]; Home.paintTiles(); if (Router.cur === 'lastyear') Router.render(); }); }
+    return { state: 'wait', ...w }; },
+};
+
+/* ---------- "Sleep tonight" ---------- */
+const Sleep = {
+  hl: h => S.units.h12 ? (h === 0 ? 'Midnight' : `${h % 12 || 12} ${h < 12 ? 'am' : 'pm'}`) : `${pad(h)}:00`,
+  hs: (ts, tz) => fmtHour(ts, tz).replace(/([ap])$/, ' $1m'),
+  inNight(hr) { const b = +(S.opts.bed ?? 22), w = +(S.opts.wake ?? 7); return b > w ? (hr >= b || hr < w) : (hr >= b && hr < w); },
+  nights(d, n = 1) { const tz = d.timezone, H = hours(d, null, 24 * (n + 1) + 2), out = []; let cur = null;
+    for (const h of H) { if (h.temperature_2m == null) break; if (this.inNight(tzHour(h.t, tz))) (cur ??= []).push(h); else if (cur) { out.push(cur); cur = null; } }
+    if (out[0] && out[0][0].t <= Date.now() && out[0].length < 2) out.shift();   // last hour before waking: show tonight instead
+    return out.slice(0, n); },
+  // 5 AC · 4 fan · 3 fan on low · 2 nothing needed · 1 light blanket · 0 heavy blanket
+  level(h) { const f = h.apparent_temperature, dp = h.dew_point_2m ?? 0;
+    return f >= 31 || (f >= 28 && dp >= 22) ? 5 : f >= 26 || (f >= 24 && dp >= 20) ? 4 : f >= 22 ? 3 : f >= 15 ? 2 : f >= 7 ? 1 : 0; },
+  levelName: ['2 blankets', 'Blanket', 'Comfy', 'Fan low', 'Fan', 'AC'],
+  score(W, aqi) { let p = 0;
+    for (const h of W) { const f = h.apparent_temperature, dp = h.dew_point_2m ?? 10;
+      p += Math.max(0, f - 22) * 5 + Math.max(0, 14 - f) * 2.5 + Math.max(0, dp - 18) * 2.5 + (h.precipitation_probability >= 50 ? 4 : 0) + ([95, 96, 99].includes(h.weather_code) ? 18 : 0) + Math.max(0, (h.wind_gusts_10m || 0) - 45) * .6; }
+    p /= W.length; if (aqi != null) p += Math.max(0, aqi - 100) * .08;
+    return Math.round(clamp(100 - p, 0, 100)); },
+  grade: s => s >= 80 ? ['Great', '#a8f5d6'] : s >= 60 ? ['Good', '#9fd8ff'] : s >= 40 ? ['So-so', '#ffe39a'] : ['Rough', '#ffb3a8'],
+  advice(W, tz) { const L = W.map(h => this.level(h)), b = L[0], minF = Math.min(...W.map(h => h.apparent_temperature));
+    if (b >= 4) { const name = b === 5 ? 'AC' : 'Fan', off = L.findIndex(v => v < b); return { e: b === 5 ? '❄️' : '🌀', label: 'Fan / AC', text: off > 0 ? `${name} till ${this.hs(W[off].t, tz)}` : `${name} all night` }; }
+    if (b === 3) return { e: '🌀', label: 'Fan / AC', text: L.some(v => v <= 2) ? 'Fan low, then off' : 'Fan on low' };
+    if (b === 2) return L.some(v => v <= 1) ? { e: '🧣', label: 'Bedding', text: 'Light blanket' } : { e: '🌀', label: 'Fan / AC', text: 'Not needed' };
+    return { e: '🧣', label: 'Bedding', text: minF < 7 ? 'Heavy blanket' : 'Light blanket' }; },
+  windows(W, aqi) { const f = W[0].apparent_temperature;
+    if (aqi != null && aqi > 100) return 'Shut · smog'; if (W.some(h => h.precipitation_probability >= 50)) return 'Shut · rain';
+    if (this.level(W[0]) === 5) return 'Shut · AC on'; if (f < 12) return 'Shut · cold'; return f > 24 ? 'Open wide' : 'Open a bit'; },
+};
 
 /* ---------- tile set ---------- */
 const TILES = {
@@ -21611,8 +21682,8 @@ const TILES = {
     back: () => `<div class="small muted">Answers come from the hourly forecast for this place, air quality and the sun.</div>` },
   wind: { title: 'Wind', g: 'g5',
     front(d) { const c = cur(d); const deg = c.wind_direction_10m || 0; return `<div class="wd"><svg viewBox="0 0 120 120" class="wd-dial"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(var(--hi),.25)" stroke-width="1.5"/>${Array.from({ length: 36 }, (_, i) => `<line x1="60" y1="${i % 9 === 0 ? 10 : 12}" x2="60" y2="16" stroke="rgba(var(--hi),${i % 9 === 0 ? .9 : .35})" transform="rotate(${i * 10} 60 60)"/>`).join('')}
-        ${[['N', 60, 29], ['E', 93, 63], ['S', 60, 97], ['W', 27, 63]].map(([t, x, y]) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="9" font-weight="800" fill="rgba(var(--hot),.9)">${t}</text>`).join('')}
-        <g class="wd-arrow" style="transform:rotate(${deg + 180}deg)"><path d="M60 22 L66 60 L60 54 L54 60 Z" fill="rgb(var(--hot))"/><path d="M60 98 L64 64 L60 68 L56 64Z" fill="rgba(var(--hi),.6)"/></g></svg>
+        <circle cx="60" cy="60" r="25" class="wd-hub"/>
+        <g class="wd-arrow" style="transform:rotate(${deg + 180}deg)"><path d="M60 17 L67.5 35 L60 31 L52.5 35 Z" fill="rgb(var(--hot))" style="filter:drop-shadow(0 0 4px rgba(var(--hot),.7))"/><circle cx="60" cy="91" r="3.2" fill="rgba(var(--hi),.65)"/></g>${[['N', 60, 29], ['E', 93, 63], ['S', 60, 97], ['W', 27, 63]].map(([t, x, y]) => `<text x="${x}" y="${y}" text-anchor="middle" font-size="9" font-weight="800" class="wd-l">${t}</text>`).join('')}</svg>
         <div class="wd-c"><b>${Math.round(U.w(c.wind_speed_10m))}</b><span>${({ kmh: 'km/h', mph: 'mph', ms: 'm/s', kn: 'kn' }[S.units.wind])}</span></div></div>
         <div class="tl2">${beaufort(c.wind_speed_10m)} from ${dir16(deg)} · gusts ${U.W(c.wind_gusts_10m)}</div>`; },
     back: () => optSel('units.wind', 'Wind unit', [['kmh', 'km/h'], ['mph', 'mph'], ['ms', 'm/s'], ['kn', 'Knots']]) + optNum('alerts.gust', 'Gust alert (km/h)', 20, 150) },
@@ -21649,6 +21720,30 @@ const TILES = {
     front(d) { const H = hours(d, null, 12), now = H[0], pv = pavement(now), peak = Math.max(...H.map(pavement)); const hot = pv >= 52, wc = now.apparent_temperature;
       return `<div class="bt"><div><span>Pavement now</span><b style="color:${hot ? '#ff8f6b' : 'inherit'}">${U.T(pv)}</b></div><div><span>Paws</span><b style="color:${hot ? '#ff8f6b' : '#48dca0'}">${hot ? 'Too hot' : 'Safe'}</b></div><div><span>Kids outside</span><b>${wc >= 35 ? 'Shade & water' : wc <= 0 ? 'Bundle up' : now.uv_index >= 6 ? 'Hat + sunscreen' : 'Good to go'}</b></div><div><span>Hottest ground</span><b>${U.T(peak)}</b></div></div>`; },
     back: () => `<div class="small muted">Ground temperature is an estimate. Rule of thumb: if you can't hold the back of your hand on the pavement for 7 seconds, it's too hot for paws.</div>` },
+  lastyear: { title: 'This day last year', g: 'g13',
+    front(d, l) { const ly = LastYear.get(d, l), D0 = days(d)[0];
+      if (ly.state === 'wait') return `<div class="ly-wait"><i class="ly-spin"></i><span class="tl2">Looking back a year…</span></div>`;
+      if (ly.state === 'fail') return `<div class="empty-hint">${isArtifactHost ? 'Last year\'s weather loads once the app runs on your domain.' : 'Couldn\'t reach the weather archive. It\'ll try again in a few minutes.'}</div>`;
+      if (ly.state === 'none') return `<div class="empty-hint">No record for this place on ${esc(ly.label)}.</div>`;
+      const r = ly.r, then = { hi: r.temperature_2m_max[0], lo: r.temperature_2m_min[0] ?? r.temperature_2m_max[0], rain: r.precipitation_sum?.[0] ?? 0, code: r.weather_code?.[0] ?? 3 };
+      const diff = U.t(D0.temperature_2m_max) - U.t(then.hi), a = Math.round(Math.abs(diff));
+      const [head, col] = a === 0 ? ['Just like last year', '#a8f5d6'] : diff > 0 ? [`${a}° warmer`, '#ffbf85'] : [`${a}° cooler`, '#8fd8ff'];
+      const lo = Math.min(D0.temperature_2m_min, then.lo), hi = Math.max(D0.temperature_2m_max, then.hi), rg = hi - lo || 1;
+      const row = (lab, mn, mx, code) => `<div class="ly-r"><span class="ly-y">${lab}</span>${wIcon(code, 1, 24)}<span class="ly-lo">${U.T(mn)}</span><span class="dl-bar"><i style="left:${(mn - lo) / rg * 100}%;right:${100 - (mx - lo) / rg * 100}%"></i></span><span class="ly-hi">${U.T(mx)}</span></div>`;
+      return `<div class="ly-head"><b style="color:${col}">${head}</b><span>than ${esc(ly.label)}</span></div>
+        <div class="ly-rows">${row('Today', D0.temperature_2m_min, D0.temperature_2m_max, D0.weather_code)}${row(ly.year, then.lo, then.hi, then.code)}</div>
+        <div class="tl2">Last year: ${esc(wInfo(then.code)[0].toLowerCase())}${then.rain >= .2 ? `, ${U.R(then.rain)} of rain` : ', no rain'}</div>`; },
+    back: () => `<div class="small muted">Today's high and low next to the same date last year. Past weather comes from Open-Meteo's archive, which goes back to 1940.</div>` },
+  sleep: { title: 'Sleep tonight', g: 'g14',
+    front(d, l) { const W = Sleep.nights(d, 1)[0]; if (!W) return '<div class="empty-hint">The night forecast isn\'t ready yet.</div>';
+      const tz = d.timezone, aqi = Data.aq(l)?.current?.us_aqi ?? null, sc = Sleep.score(W, aqi), [lab, col] = Sleep.grade(sc), adv = Sleep.advice(W, tz), win = Sleep.windows(W, aqi);
+      const low = W.reduce((m, h) => h.temperature_2m < m.temperature_2m ? h : m), started = W[0].t <= Date.now();
+      const fs = W.map(h => h.apparent_temperature), mn = Math.min(...fs), mx = Math.max(...fs), rg = mx - mn || 1, X = i => W.length > 1 ? i / (W.length - 1) * 100 : 50, Y = v => 26 - (v - mn) / rg * 20;
+      const pts = fs.map((v, i) => `${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join(' ');
+      return `<div class="sl-top"><div class="sl-ring" style="--p:${sc};--c:${col}"><b>${sc}</b></div><div class="sl-cap"><b style="color:${col}">${lab}</b><span><em class="sl-k">${started ? 'Rest of tonight' : 'Sleep weather'} · </em>${Sleep.hs(W[0].t, tz)}–${Sleep.hs(W.at(-1).t + HOUR, tz)}</span></div></div>
+        <svg class="sl-spark" viewBox="0 0 100 30" preserveAspectRatio="none"><defs><linearGradient id="slg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".45"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><polygon points="0,30 ${pts} 100,30" fill="url(#slg)"/><polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></svg>
+        <div class="sl-rows"><div><span><i class="sl-e">🛏️ </i>At ${Sleep.hs(W[0].t, tz)}</span><b>Feels ${U.T(W[0].apparent_temperature)}</b></div><div><span><i class="sl-e">${adv.e} </i>${adv.label}</span><b>${esc(adv.text)}</b></div><div><span><i class="sl-e">🪟 </i>Windows</span><b>${esc(win)}</b></div><div><span><i class="sl-e">🌡️ </i>Coldest</span><b>${U.T(low.temperature_2m)} · ${Sleep.hs(low.t, tz)}</b></div></div>`; },
+    back: () => optSel('opts.bed', 'Bedtime', [21, 22, 23, 0, 1].map(h => [h, Sleep.hl(h)])) + optSel('opts.wake', 'Wake up', [5, 6, 7, 8, 9].map(h => [h, Sleep.hl(h)])) },
 };
 function moonSvg(ph, s = 50) { const r = 22, off = r * 2 * (ph < .5 ? ph * 2 : (1 - ph) * 2) * (ph < .5 ? -1 : 1); return `<svg width="${s}" height="${s}" viewBox="0 0 50 50" class="moon"><defs><clipPath id="mc${s}"><circle cx="25" cy="25" r="${r}"/></clipPath><radialGradient id="mg${s}" cx=".4" cy=".35"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#cfd6ef"/></radialGradient></defs><circle cx="25" cy="25" r="${r}" fill="url(#mg${s})" style="filter:drop-shadow(0 0 8px rgba(220,228,255,.7))"/><g clip-path="url(#mc${s})"><circle cx="${25 + off}" cy="25" r="${r * 1.03}" fill="rgba(10,14,40,.9)"/></g></svg>`; }
 
@@ -21700,7 +21795,7 @@ const Answers = {
 /* =====================================================================
    APP: home (swipeable places + flip tiles), sheets, features, settings
    ===================================================================== */
-const TILE_ICON = { hourly: '🕒', daily: '📅', rainnow: '🌧️', shouldi: '🤔', wind: '🌬️', air: '🫁', sun: '☀️', moon: '🌙', beauty: '💇', feels: '💧', garden: '🌱', pets: '🐾' };
+const TILE_ICON = { hourly: '🕒', daily: '📅', rainnow: '🌧️', shouldi: '🤔', wind: '🌬️', air: '🫁', sun: '☀️', moon: '🌙', beauty: '💇', feels: '💧', garden: '🌱', pets: '🐾', lastyear: '⏳', sleep: '🛏️' };
 const MINIS = [['plan', '🗓️', 'Plan my day'], ['commute', '🚗', 'Commute'], ['family', '👨‍👩‍👧', 'Family'], ['packing', '🧳', 'Packing'], ['memories', '🕰️', 'This day'], ['world', '🌍', 'World'], ['radar', '📡', 'Radar'], ['alerts', '⚠️', 'Alerts'], ['scenes', '✨', 'Scenes']];
 
 function smartLine(d, l) {
@@ -21824,6 +21919,16 @@ const tileSheet = (k, extra) => ({ title: () => `${TILE_ICON[k]} ${TILES[k].titl
 Object.keys(TILES).forEach(k => Sheets[k] = tileSheet(k));
 Sheets.hourly = tileSheet('hourly', (d) => `<div class="sec-t">Hour by hour</div><div class="list">${hours(d, null, 48).map(h => `<div class="item"><b style="width:56px">${fmtHour(h.t, d.timezone)}</b>${wIcon(h.weather_code, h.is_day, 30)}<div class="grow"><div class="t1">${U.T(h.temperature_2m)} · feels ${U.T(h.apparent_temperature)}</div><div class="t2">${wInfo(h.weather_code)[0]} · rain ${h.precipitation_probability}% ${h.precipitation ? '(' + U.R(h.precipitation) + ')' : ''} · wind ${U.W(h.wind_speed_10m)} · UV ${(h.uv_index || 0).toFixed(0)}</div></div></div>`).join('')}</div>`);
 Sheets.daily = { title: () => `📅 16-day forecast · ${loc().name}`, render: d => `<div class="list">${days(d).map((x, i) => `<div class="item"><div style="width:62px"><b>${i === 0 ? 'Today' : fmtDay(x.t + 12 * HOUR, d.timezone)}</b><div class="t2">${fmtDay(x.t + 12 * HOUR, d.timezone, { day: 'numeric', month: 'short' })}</div></div>${wIcon(x.weather_code, 1, 34)}<div class="grow"><div class="t1">${U.T(x.temperature_2m_max)} / ${U.T(x.temperature_2m_min)} · ${wInfo(x.weather_code)[0]}</div><div class="t2">Rain ${x.precipitation_probability_max ?? 0}% · ${U.R(x.precipitation_sum)}${x.snowfall_sum ? ' · snow ' + x.snowfall_sum + ' cm' : ''} · wind ${U.W(x.wind_speed_10m_max)} · UV ${(x.uv_index_max || 0).toFixed(0)}</div><div class="t2">Sun ${fmtTime(x.sunrise * 1000, d.timezone)}–${fmtTime(x.sunset * 1000, d.timezone)}</div></div></div>`).join('')}</div><div class="sec-t">Settings for this tile</div><div class="glass">${TILES.daily.back()}</div>` };
+Sheets.lastyear = tileSheet('lastyear', (d, l) => { const yrs = [2, 5, 10, 25, 50], w = LastYear.when(d), base = w.year + 1, md = w.ymd.slice(4);
+  setTimeout(async () => { for (const y of yrs) { const el = $(`[data-ly="${y}"]`); if (!el) return; const ymd = `${base - y}${md}`;
+    try { const r = await Data.archive(l, ymd); if (r.temperature_2m_max?.[0] == null) throw 0; const diff = U.t(days(d)[0].temperature_2m_max) - U.t(r.temperature_2m_max[0]);
+      el.innerHTML = `${wIcon(r.weather_code[0], 1, 34)}<div class="grow"><div class="t1">${base - y} · ${y} years ago</div><div class="t2">${U.T(r.temperature_2m_max[0])} / ${U.T(r.temperature_2m_min[0])} · ${wInfo(r.weather_code[0])[0]} · rain ${U.R(r.precipitation_sum[0])}</div></div><b>${(diff >= 0 ? '+' : '') + Math.round(diff)}°</b>`; }
+    catch { el.innerHTML = `<div class="grow"><div class="t1">${base - y} · ${y} years ago</div><div class="t2">${isArtifactHost ? 'History loads once the app runs on your domain.' : 'Couldn\'t load this year right now.'}</div></div>`; } } }, 50);
+  return `<div class="sec-t">Same date, further back</div><p class="small muted" style="margin-top:0">The number on the right is how today's high compares.</p><div class="list">${yrs.map(y => `<div class="item" data-ly="${y}"><div class="grow"><div class="t1">${base - y} · ${y} years ago</div><div class="t2">Loading…</div></div></div>`).join('')}</div>`; });
+Sheets.sleep = tileSheet('sleep', (d, l) => { const tz = d.timezone, aqi = Data.aq(l)?.current?.us_aqi ?? null, N = Sleep.nights(d, 4), W = N[0]; if (!W) return '';
+  return `<div class="sec-t">Hour by hour tonight</div><div class="list">${W.map(h => { const lv = Sleep.level(h); return `<div class="item"><b style="width:56px">${Sleep.hs(h.t, tz)}</b>${wIcon(h.weather_code, h.is_day, 30)}<div class="grow"><div class="t1">Feels ${U.T(h.apparent_temperature)} · ${U.T(h.temperature_2m)} air</div><div class="t2">Humidity ${h.relative_humidity_2m}%${h.precipitation_probability >= 30 ? ` · rain ${h.precipitation_probability}%` : ''}${(h.wind_gusts_10m || 0) >= 40 ? ` · gusts ${U.W(h.wind_gusts_10m)}` : ''}</div></div><span class="tag ${lv >= 4 ? 'amb' : lv === 2 ? 'grn' : ''}">${Sleep.levelName[lv]}</span></div>`; }).join('')}</div>
+    <div class="sec-t">Coming nights</div><div class="list">${N.map((w, i) => { const sc = Sleep.score(w, i ? null : aqi), [lab, col] = Sleep.grade(sc), lo = Math.min(...w.map(h => h.temperature_2m)); return `<div class="item"><div class="grow"><div class="t1">${i === 0 ? 'Tonight' : fmtDay(w[0].t, tz, { weekday: 'long' }) + ' night'}</div><div class="t2">Low ${U.T(lo)} · ${esc(Sleep.advice(w, tz).text)}</div></div><b style="color:${col}">${sc} · ${lab}</b></div>`; }).join('')}</div>
+    <div class="sec-t">How the score works</div><div class="glass small">It starts at 100 and drops for a hot or sticky night, a very cold one, rain or thunder that could wake you, strong gusts, and smoggy air. Bedtime and wake-up time are yours to set in the tile's settings below.</div>`; });
 Sheets.shouldi = { title: () => `🤔 Should I? · ${loc().name}`, render: (d, l) => `<p class="muted" style="margin-top:0">Straight answers from the forecast for the next day or two.</p><div class="list">${Answers.all(d, l).map(a => `<div class="item"><span style="font-size:24px">${a.e}</span><div class="grow"><div class="t1">${esc(a.q)}</div><div class="t2">${esc(a.why)}</div></div><b class="si-a ${a.ok}">${a.ok === 'yes' ? 'Yes' : a.ok === 'no' ? 'No' : 'Maybe'}</b></div>`).join('')}</div>` };
 Sheets.air = tileSheet('air', (d, l) => { const a = Data.aq(l); if (!a) return ''; const c = a.current; const pol = pollenKeys.filter(([k]) => c[k] != null);
   return `<div class="sec-t">Pollutants (µg/m³)</div><div class="glass"><div class="bt">${[['PM2.5', c.pm2_5], ['PM10', c.pm10], ['Ozone', c.ozone], ['NO₂', c.nitrogen_dioxide], ['SO₂', c.sulphur_dioxide], ['CO', c.carbon_monoxide]].map(([n, v]) => `<div><span>${n}</span><b>${v ?? '—'}</b></div>`).join('')}</div></div>
